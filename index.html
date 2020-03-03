@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>Sitemind | Nihal.tv</title>
+        <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"-->
+
+        <link rel="stylesheet" href="styles/styles.css">
+        <!--font-->
+        <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Hind+Siliguri|Nunito|Roboto+Condensed|Yantramanav&display=swap" rel="stylesheet">
+        <link rel="icon" type="image/svg" href="res/videocam-24px.svg">
+        <!--firebase auth-->
+        <!--link type="text/css" rel="stylesheet" href="bower_components/firebaseui/dist/firebaseui.css" /-->
+    </head>
+    <body>
+        <!--div class="veil">
+            <div class="login">
+                <div id="firebaseui-auth-container"></div>
+            </div>
+        </div-->
+
+        <div class = "container" id="app">
+
+            <!--div class="auth">
+                <div class="auth-container">
+                    <h1>Login</h1>
+                    <label for="email">email</label>
+                    <input type="text" id="email"></input>
+                    <label for="password">password</label>
+                    <input type="password" id="password"></input>
+                </div>
+            </div-->
+
+            <div class="navbar" v-bind:class="[ homeActive ? 'nav-solid' : 'nav-trans' ]">
+                <div @click="toggleHome()" class="nav-logo">
+                    <h3>Nihal.tv <span>Editor</span></h3>
+                </div>
+                <div class="nav-center">
+                    <ul>
+                        <li @click="toggleHome()" class="nav-item" v-bind:class="[ homeActive ? 'nav-active' : 'nav-inactive' ]"><div class="nav-icon" id="nav-icon-home"></div><span>Dashboard</span></li>
+                        <li @click="toggleFilm()" class="nav-item" v-bind:class="[ filmWindowActive || reelWindowActive ? 'nav-active' : 'nav-inactive' ]"><div class="nav-icon" id="nav-icon-film"></div><span>Add Film</span></li>
+                        <li @click="togglePhoto()" class="nav-item" v-bind:class="[ photoWindowActive ? 'nav-active' : 'nav-inactive' ]"><div class="nav-icon" id="nav-icon-photo"></div><span>Add Photos</span></li>
+                    </ul>
+                </div>
+                <div class="nav-text">
+                    <ul>
+                        <li @click="toggleSettings()" class="nav-item" id="nav-item-settings" v-bind:class="[ settingsWindowActive ? 'nav-active' : 'nav-inactive' ]"><div class="nav-icon" id="nav-icon-settings"></div>Profile</li>
+                        <a class="live-site-button" href="https://tbrew1023.github.io/Nihal-Public" target="_blank"><li><span>View Live Site</span></li></a>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="film-window" v-bind:class="[ filmWindowActive ? 'window-section-active' : 'window-section-inactive' ]">
+                <div class="inner-window-settings">
+                    <div class="film-upload-container">
+                        
+                        <div class="general-section film-upload-section">
+                            <h2>General</h2>
+                            <div class="film-inner">
+                                <div class="inner-inputs">
+                                    <label>Project Title</label>
+                                    <input class="form-control" type="text" v-model="item.title" v-on:keyup.enter=""></input>
+                                    <br>
+                        
+                                    <label>Genre</label>
+                                    <input class="form-control" type="text" v-model="item.genre" v-on:keyup.enter=""></input>
+                                    <br>
+                        
+                                    <label>Summary</label>
+                                    <textarea style="resize: none" class="form-control" type="text" v-model="item.summary" v-on:keyup.enter=""></textarea>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="credits-section film-upload-section">
+                            <h2>Credits</h2>
+                            <div class="film-inner">
+                                <ul>
+                                    <li v-for="(c, index) in item.credits">
+                                        <label class="left-label">Role</label>
+                                        <input class="form-control" type="text" v-model="item.credits[index].role" v-on:keyup.enter="newCredit()">
+                                        <label>Name</label>
+                                        <input class="form-control" type="text" v-model="item.credits[index].name" v-on:keyup.enter="newCredit()">
+                                    </li>
+                                    <button class="btn" @click="newCredit()">Add Another Credit</button>
+                                </ul>
+                            </div>
+                        </div>
+    
+                        <div class="upload-section screengrabs-section film-upload-section">
+                            <h2>Upload Screengrabs (PNG, GIF, JPG, JPEG)</h2>
+                            <div class="film-inner">
+                                <ul>
+                                    <li v-for="(p, index) in photoCount">
+                                        <progress style="transition: 200ms" :value="screengrabUploadProgress" max="100" id="uploader" v-bind:class="[ uploadDone ? 'uploadDone' : '' ]">0%</progress>
+                                        <input @change="handleScreengrabUpload" type="file" value="upload" class="fileButton fileButtonPhotos" :id="'fileButton' + focus" multiple/>
+                                    </li>
+                                    <button class="btn" @click="photoCount++">Add Another Screengrab</button>
+                                </ul>
+                            </div>
+                        </div>
+    
+                        <div class="upload-section final-film-section film-upload-section">
+                            <h2>Upload Final Film (MP4)</h2>
+                            <div class="film-inner">
+                                <ul>
+                                    <progress style="transition: 200ms" :value="uploadProgress" max="100" id="uploader" v-bind:class="[ uploadDone ? 'uploadDone' : '' ]">0%</progress>
+                                    <input @change="handleFilmUpload" type="file" value="upload" class="fileButton" id="fileButtonFilm" />
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="window-options">
+                        <button class="btn btn-primary" @click="add()">Add to Portfolio</button>
+                        <button class="btn btn-primary btn-cancel" @click="toggleHome()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reel-window" v-bind:class="[ reelWindowActive ? 'window-section-active' : 'window-section-inactive' ]">
+                <div class="inner-window-settings">
+                    <div class="film-upload-container">
+                        <div class="upload-section final-film-section film-upload-section">
+                            <h2>Upload Reel (mp4)</h2>
+                            <div class="film-inner">
+                                <ul>
+                                    <progress style="transition: 200ms" :value="uploadProgress" max="100" id="uploader" v-bind:class="[ uploadDone ? 'uploadDone' : '' ]">0%</progress>
+                                    <input @change="handleReelUpload" type="file" value="upload" class="fileButton" id="fileButtonFilm" />
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="window-options">
+                        <button class="btn btn-primary" @click="addReel()">Add to Portfolio</button>
+                        <button class="btn btn-primary btn-cancel" @click="toggleHome()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="photo-window" v-bind:class="[ photoWindowActive ? 'window-section-active' : 'window-section-inactive' ]">
+                <div class="inner-window-settings">
+                    <div class="film-upload-container">
+                        <div class="upload-section final-film-section film-upload-section">
+                            <h2>Upload Photos (PNG, GIF, JPG, JPEG)</h2>
+                            <div class="film-inner photo-inner">
+                                <ul>
+                                    <li v-for="(p, index) in photoCount">
+                                        <progress style="transition: 200ms" :value="uploadProgress" max="100" id="uploader" v-bind:class="[ uploadDone ? 'uploadDone' : '' ]">0%</progress>
+                                        <input @change="handlePhotoUpload" type="file" value="upload" class="fileButton" id="fileButtonPhotos" multiple/>
+                                    </li>
+                                    <button class="btn" @click="photoCount++">Add Another Photo</button>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="window-options">
+                        <button class="btn btn-primary" @click="toggleHome()">Done</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings-window" v-bind:class="[ settingsWindowActive ? 'window-section-active' : 'window-section-inactive' ]">
+                <div class="inner-window-settings settings-container">
+                    <div class="profile-upload" v-bind:style="{ backgroundImage: 'url(' + newBio.photo + ')' }">
+                        <input @change="handleProfileUpload" type="file" value="upload" class="profileImgUpload" id="fileButtonFilm" />
+                        <div class="photo-load-veil">
+                            <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+                        </div>
+                        <div class="replace-veil"><span>Replace</span></div>
+                    </div>
+                    <label>Bio</label>
+                    <br>
+                    <textarea v-model="newBio.text"></textarea>
+                    <br>
+                    <div class="window-options">
+                        <button class="btn btn-primary" @click="addBio()">Update Profile</button>
+                        <button class="btn btn-primary btn-cancel" @click="toggleHome()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="screengrab-window" v-bind:class="[ screengrabWindowActive ? 'window-section-active' : 'window-section-inactive' ]">
+                <div class="inner-window-settings">
+                    <div class="film-upload-container">
+                        <div class="upload-section final-film-section film-upload-section">
+                            <h2>Upload Screengrabs (PNG, GIF, JPG, JPEG)</h2>
+                            <div class="film-inner photo-inner">
+                                <ul>
+                                    <li v-for="(p, index) in photoCount">
+                                        <progress style="transition: 200ms" :value="uploadProgress" max="100" id="uploader" v-bind:class="[ uploadDone ? 'uploadDone' : '' ]">0%</progress>
+                                        <input @change="handleNewScreenGrab" type="file" value="upload" class="fileButton fileButtonPhotos" :id="'fileButton' + focus" multiple/>
+                                    </li>
+                                    <button class="btn" @click="photoCount++">Add Another Screengrab</button>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="window-options">
+                        <button class="btn btn-primary" @click="toggleHome()">Done</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" v-bind:class="[ filmWindowActive || settingsWindowActive || photoWindowActive || reelWindowActive || screengrabWindowActive ? 'content-blur-active' : 'content-blur-inactive' ]">
+                <div class="section-films">
+                        <h2>Films</h2>
+                        <ul class="list-group reel-container">
+                            <li class="list-group-item project-item" id="vid-reel">
+                                <button style="float: right" @click="toggleReel()" class="badge reel-badge">Replace</button>
+                                <div class="vid-section">
+                                    <video class="reel-video" controls muted autoplay>
+                                        <source :src="filmReel[0].finalFilm" type="video/mp4" />
+                                    </video>
+                                    <div class="vid-text">
+                                        <h1 style="font-weight: normal">Film Reel</h1>
+                                        <strong><p style="opacity:0.5">Compilation</p></strong>
+                                        <p class="summary">Shown on the landing page of the site.</p>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <ul class="list-group">
+                            <li class="list-group-item project-item" v-for="(i, index) in items" :id="'vid' + index">
+
+                                <button style="float: right" @click="removeProject(i)" class="badge">Remove</button>
+                                <button style="float: right" :id="'update' + index" @click="handleUpdate(index, i)" class="badge" v-bind:class="( updateActive ? 'reel-badge update-active' : 'update-inactive' )">Save Changes</button>
+                                <div class="vid-section">
+                                    <div class="video-container">
+                                        <video v-if="i.finalFilm" controls muted autoplay>
+                                            <source :src="i.finalFilm  + '#t=' + i.startTime" type="video/mp4" />
+                                        </video>
+                                        <div v-if="!i.finalFilm" class="empty-video">
+                                            <div class="empty-video-inner">
+                                                <div class="empty-video-icon"></div>
+                                                <p>No Film Uploaded</p>
+                                            </div>    
+                                        </div>
+                                    </div>
+                                    <div class="vid-text">
+                                        <!--title-->
+                                        <div class="update-form-container">
+                                            <input type="text" class="edit-title edit" v-model="stagedItems[index].title" @input="stageUpdate(index, i)"></input>
+                                            <div class="edit-icon"></div>
+                                        </div>
+                                        <!--genre-->
+                                        <div class="update-form-container">
+                                            <input type="text" class="edit-genre edit" v-model="stagedItems[index].genre" @input="stageUpdate(index, i)"></input>
+                                            <div class="edit-icon"></div>
+                                        </div>
+                                        <!--summary-->
+                                        <div class="update-form-container">
+                                            <textarea v-model="stagedItems[index].summary" class="summary edit-summary edit" @input="stageUpdate(index, i)"></textarea>
+                                            <div class="edit-icon"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <br>
+                                <!--start time-->
+                                <div v-if="i.finalFilm" class="start-time-container">
+                                    <label style="font-size: 14px">Start Time (Seconds)</label>
+                                    <input type="number" class="edit-start-time" v-model="stagedItems[index].startTime" @input="stageUpdate(index, i)"></input>    
+                                </div>
+                                <br>
+                                <!--screengrabs-->
+                                <ul class="images">
+                                    <li v-for="(p, photoIndex) in stagedItems[index].screenGrabs" class="screengrab-container">
+                                        <div @click="handleRemoveScreengrab(index, photoIndex)" class="screengrab-delete-veil"><span>Remove</span></div>
+                                        <img :src="p" />
+                                    </li>
+                                    <li class="screengrabs-button-container">
+                                        <div @click="toggleScreengrab(index)" class="screengrabs-button"><span style="opacity:1"><strong>+</strong><br>Add Screengrabs</span></div>
+                                    </li>
+                                </ul>
+                                <br>
+                                <!--credits-->
+                                <div class="credits-container">
+                                    <p class="credit" style="display: inline-flex" v-for="(c, index) in i.credits"><span>{{c.role}}</span>&nbsp;<strong>{{c.name}}</strong>&nbsp;</p>
+                                </div>
+                            </li>
+                        </ul>
+                </div>
+                
+                <div class="section-photos">
+                    <h2 class="photo-header">Photos</h2>
+                    <div class="photos-container">
+
+                        <div class="grid-container">
+                            <div v-if="showPhotos" class="photo" @click="removePhoto(p)" v-for="(p, index) in photos">
+                                <img :src="p.src" alt="" width="150" height="150"/>
+                                <div class="photo-delete"><span>Remove</span></div>
+                                <div class="photo-load-veil-small">
+                                    <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-left: 24px;font-weight: normal; font-size: 14px; opacity: 0.3; color: white" v-if="photos.length == 0 || !showPhotos">No photos uploaded.</h3>
+
+                    </div>
+                </div>
+            </div>
+        
+        </div>
+
+        <!-- Vue -->   
+        <script src="https://unpkg.com/vue"></script>
+        <!-- firebase -->
+        <script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-app.js"></script>
+        <!-- firestore -->
+        <script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-firestore.js"></script>
+        <!--vue-router-->
+        <script src="https://cdn.jsdelivr.net/npm/vue-router@3.1.5/dist/vue-router.min.js"></script>
+        <!-- vue-firestore -->   
+        <script src="https://unpkg.com/vue-firestore"></script>
+        <!-- storage -->
+        <script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-storage.js"></script>
+        <!--firebase ui-->
+        <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+        <!--firebase auth-->
+        <script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-auth.js"></script>
+        <!--broser-image-compression-->
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@latest/dist/browser-image-compression.js"></script>
+        <!-- app -->
+        <script src="app.js"></script>
+    </body>
+</html>
